@@ -8,9 +8,14 @@
     <script defer src="https://pyscript.net/latest/pyscript.js"></script>
 </head>
 <body>
-    <h1>Hello, PyScript!</h1>
+    <h1>Questionário de Filosofia</h1>
+    <div id="questionario"></div>
+    <div id="resultado"></div>
+    <!-- Ensure the PyScript script tag correctly references the external Python file -->
+    <py-script src="questionnaire.py"></py-script>
     <py-script>
-        print("Hello from PyScript!")
+        from questionnaire import criar_formulario
+        criar_formulario()
     </py-script>
 </body>
 </html>
