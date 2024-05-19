@@ -3,15 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PyScript Web Page</title>
-    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css">
+    <title>Survey with PyScript</title>
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
     <script defer src="https://pyscript.net/latest/pyscript.js"></script>
-    <py-env>
-        - paths:
-            - main.py
-    </py-env>
 </head>
 <body>
-    <py-script src="main.py"></py-script>
+    <h1>Survey</h1>
+    <div id="survey-container"></div>
+    <button id="submit-btn">Submit</button>
+    <p id="result"></p>
+
+    <py-script>
+        from collections import Counter
+        from js import document
+        from pyodide.ffi import create_proxy
+
+        prompts = [
+        "O aprendizado é um processo de interação com as pessoas e coisas ao nosso redor.",
+        "A pessoa humana é principalmente um sistema nervoso influenciado pela interação com o ambiente físico de acordo com princípios científicos.",
+        "A educação deveria levar ao indivíduo à compreensão espiritual.",
+        "Conhecimento significa adaptação bem sucedida ao entorno.",
+        "O conhecimento é exato se reflete a realidade física e material.",
+        "O ser humano é basicamente um ser espiritual.",
+        "O ser humano descobre o conhecimento a partir do mundo físico e material.",
+        "O conhecimento é para ser usado. É, no fim das contas, um meio de sobrevivência.",
+        "A educação é basicamente um processo de crescimento espiritual.",
+        "Bom é aquilo que permite alcançar um objetivo decidido por consenso social.",
+        "O conhecimento se alcança ao considerar as implicações práticas das ideias.",
+        "A mente humana é simplesmente o cérebro em funcionamento.",
+        "O aprendizado é o processo de eleição da nossa própria identidade.",
+        "A mente é uma realidade espiritual que determina a natureza da realidade (ao invés da realidade determinar o que é a mente)",
+        "Todo conhecimento autêntico reflete os sentimentos do conhecedor.",
+        "A coisa mais importante da realidade é a capacidade de eleger ou decidir.",
+        "A inteligência é a habilidade de conhecer os fatos físicos e materiais.",
+        "Uma pessoa não é ninguém se não faz nada. A ação é o que determina o que a pessoa é.",
+        "A inteligência consiste na habilidade de formular e testar soluções novas aos problemas.",
+        "A realidade é o resultado de Deus que mantém o universo existindo pelo poder do seu pensamento divino.",
+        "Toda teoria ou crença deve ser testada pelo seu efeito em nós, ou seja, pelas suas consequências práticas.",
+        "O conhecimento é objetivo (ao invés de subjetivo), ou seja, deve concordar com as ciências físicas que tratam da natureza ou da realidade material.",
+        "A pessoa é, na realidade, a soma das suas próprias eleições.",
+        "Deus é o ápice espiritual da realidade.",
+        "A realidade basicamente tem a ver com temas como liberdade, eleição, amor, relações pessoais e morte.",
+        "A educação consiste, basicamente, em estimular aos estudantes a procurarem a sua própria identidade.",
+        "As verdadeiras ideias são aquelas que podem ser assimiladas, corroboradas e verificadas experimentalmente.",
+        "O conhecimento vem do sobrenatural (ou seja de uma força divina)",
+        "A pessoa age livremente, e, portanto, ela é responsável pelas suas próprias ações.",
+        "O ser humano deve ir além do mundo material para atingir seu destino espiritual.",
+        "O mundo físico experimentado pelos sentidos é basicamente factual, realidade objetiva.",
+        "O conhecimento é aquilo que é útil para conseguir a solução a algum problema.",
+        "A realidade têm sua base e origem no mundo material e físico.",
+        "A obtenção do conhecimento é basicamente um processo de procura de fatos objetivos no universo físico.",
+        "A pessoa recebe o conhecimento por revelação de Deus.",
+        "A pessoa pode resolver os problemas com soluções inéditas, gerando novo conhecimento.",
+        "A realidade acontece quando a pessoa se compromete decididamente a encarar uma determinada situação.",
+        "A mente é biológica no seu origem, e pode ser explicada em termos físicos e materiais.",
+        "As leis que permitem julgar as pessoas são determinadas por Deus.",
+        "A realidade última existe em cada pessoa individual."
+        ]
+
+        dict1 = { # This dict has the same number of prompts
+            0:"pragmatismo",
+            1:"realismo",
+            2:"idealismo",
+            3:"pragmatismo",
+            4:"realismo",
+            5:"idealismo",
+            6:"realismo",
+            7:"pragmatismo",
+            8:"idealismo",
+            9:"pragmatismo",
+            10:"pragmatismo",
+            11:"realismo",
+            12:"existencialismo",
+            13:"idealismo",
+            14:"existencialismo",
+            15:"existencialismo",
+            16:"realismo",
+            17:"existencialismo",
+            18:"pragmatismo",
+            19:"idealismo",
+            20:"pragmatismo",
+            21:"realismo",
+            22:"existencialismo",
+            23:"idealismo",
+            24:"existencialismo",
+            25:"existencialismo",
+            26:"pragmatismo",
+            27:"idealismo",
+            28:"existencialismo",
+            29:"idealismo",
+            30:"realismo",
+            31:"pragmatismo",
+            32:"realismo",
+            33:"realismo",
+            34:"idealismo",
+            35:"pragmatismo",
+            36:"existencialismo",
+            37:"realismo",
+            38:"idealismo",
+            39:"existencialismo"
+        }
+
+        dict2 = { # This dict is used to store the score of each ideology
+            "idealismo":0,
+            "realismo":0,
+            "pragmatismo":0,
+            "existencialismo":0
+        }
+
+        def render_survey():
+            container = document.getElementById('survey-container')
+            for i, prompt in enumerate(prompts):
+                container.innerHTML += f'<p>{prompt}</p>'
+                for j in range(6):
+                    container.innerHTML += f'<label><input type="radio" name="q{i}" value="{j}" required>{j}</label> '
+                container.innerHTML += '<br>'
+
+        def get_responses():
+            responses = []
+            for i in range(len(prompts)):
+                selected_option = document.querySelector(f'input[name="q{i}"]:checked')
+                if selected_option:
+                    # responses.append(int(selected_option.value))
+                    dict2[dict1[i]] += int(selected_option.value)
+                else:
+                    return "Please answer all the questions."
+
+            #counter = Counter(responses)
+            counter = Counter(dict2)
+            most_common = counter.most_common(2)
+            
+            if len(most_common) >= 2:
+                result = f"The most common responses are: {most_common[0][0]} and {most_common[1][0]}"
+            else:
+                result = f"The most common response is: {most_common[0][0]}"
+            return result
+
+        def submit_survey(event):
+            result = get_responses()
+            document.getElementById("result").innerText = result
+
+        # Render the survey and add event listener
+        render_survey()
+        submit_proxy = create_proxy(submit_survey)
+        document.getElementById('submit-btn').addEventListener('click', submit_proxy)
+    </py-script>
 </body>
 </html>
